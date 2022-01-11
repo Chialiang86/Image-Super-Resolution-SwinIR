@@ -1,0 +1,10 @@
+*.pth
+*.pyc
+*.cpp
+*.cu
+datasets/*
+!datasets/testing_lr_images/
+!datasets/training_lr_images/
+!datasets/training_hr_images/
+!datasets/val_lr_images/
+!datasets/val_hr_images/
