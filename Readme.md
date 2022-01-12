@@ -110,7 +110,7 @@ chmod +x run.sh
 #### 3. Run shell script
 ```shell 
 chmod +x run.sh 
-./run.sh test 3    # do not use "sh run.sh"
+./run.sh best    # do not use "sh run.sh"
 ```
 
 #### 4. Result images will be save in `best/100000_G_48_3`
