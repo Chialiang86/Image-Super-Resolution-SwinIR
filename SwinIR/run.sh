@@ -29,7 +29,7 @@ elif [ $1 = "test" ]; then
     done
 
 elif [ $1 = "best" ]; then
-    python3 main_test_swinir.py --task classical_sr \
+    python3 inference.py --task classical_sr \
             --scale 3 \
             --training_patch_size 48 \
             --inf_root best \
