@@ -7,10 +7,10 @@ if [ $1 = "train" ]; then
 elif [ $1 = "test" ]; then
     echo task : $1
     runnning_id=$2
-    model_root='superresolution/swinir_sr_classical_patch48_x3_crop_1/models'
-    model_ids=("100000_G" "105000_G" "110000_G" "115000_G" "120000_G" "125000_G" "130000_G" "135000_G" "140000_G" "145000_G" "150000_G")
-    inference="inference_${2}"
     imsize=48
+    model_root="superresolution/swinir_sr_classical_patch${imsize}_x3_crop_3/models"
+    model_ids=("200000_G" "250000_G" "300000_G")
+    inference="inference_${2}"
     crop='no'
 
     for model_id in ${model_ids[@]}; do
