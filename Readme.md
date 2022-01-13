@@ -26,6 +26,7 @@
 #### 1. Clone GitHub Repo
 ```shell 
 git clone https://github.com/Chialiang86/Image-Super-Resolution-SwinIR
+cd SwinIR
 ```
 
 #### 2. Download dataset
