@@ -11,7 +11,8 @@ iters_psnr = [0]
 iters_loss = [0]
 for line in lines:
     if 'Average PSNR' in line:
-        itr = int(line.split('iter: ')[1].split(', Average PSNR')[0].replace(',', ''))
+        itr = int(line.split('iter: ')[1].split(
+            ', Average PSNR')[0].replace(',', ''))
         psnr = float(line.split(', Average PSNR : ')[1][:-3])
         psnrs.append(psnr)
         iters_psnr.append(itr)

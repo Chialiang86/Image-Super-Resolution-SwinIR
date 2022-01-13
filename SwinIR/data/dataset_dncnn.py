@@ -54,7 +54,8 @@ class DatasetDnCNN(data.Dataset):
             # --------------------------------
             rnd_h = random.randint(0, max(0, H - self.patch_size))
             rnd_w = random.randint(0, max(0, W - self.patch_size))
-            patch_H = img_H[rnd_h:rnd_h + self.patch_size, rnd_w:rnd_w + self.patch_size, :]
+            patch_H = img_H[rnd_h:rnd_h + self.patch_size,
+                            rnd_w:rnd_w + self.patch_size, :]
 
             # --------------------------------
             # augmentation - flip, rotate
@@ -71,7 +72,7 @@ class DatasetDnCNN(data.Dataset):
             # --------------------------------
             # add noise
             # --------------------------------
-            noise = torch.randn(img_L.size()).mul_(self.sigma/255.0)
+            noise = torch.randn(img_L.size()).mul_(self.sigma / 255.0)
             img_L.add_(noise)
 
         else:
@@ -87,7 +88,7 @@ class DatasetDnCNN(data.Dataset):
             # add noise
             # --------------------------------
             np.random.seed(seed=0)
-            img_L += np.random.normal(0, self.sigma_test/255.0, img_L.shape)
+            img_L += np.random.normal(0, self.sigma_test / 255.0, img_L.shape)
 
             # --------------------------------
             # HWC to CHW, numpy to tensor

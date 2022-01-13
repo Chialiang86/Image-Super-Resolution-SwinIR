@@ -39,7 +39,8 @@ class DatasetJPEG(data.Dataset):
             # ---------------------------------
             rnd_h = random.randint(0, max(0, H - self.patch_size_plus))
             rnd_w = random.randint(0, max(0, W - self.patch_size_plus))
-            patch_H = img_H[rnd_h:rnd_h + self.patch_size_plus, rnd_w:rnd_w + self.patch_size_plus, ...]
+            patch_H = img_H[rnd_h:rnd_h + self.patch_size_plus,
+                            rnd_w:rnd_w + self.patch_size_plus, ...]
 
             # ---------------------------------
             # augmentation - flip, rotate
@@ -60,7 +61,8 @@ class DatasetJPEG(data.Dataset):
             if self.is_color:  # color image
                 img_H = img_L.copy()
                 img_L = cv2.cvtColor(img_L, cv2.COLOR_RGB2BGR)
-                result, encimg = cv2.imencode('.jpg', img_L, [int(cv2.IMWRITE_JPEG_QUALITY), quality_factor])
+                result, encimg = cv2.imencode(
+                    '.jpg', img_L, [int(cv2.IMWRITE_JPEG_QUALITY), quality_factor])
                 img_L = cv2.imdecode(encimg, 1)
                 img_L = cv2.cvtColor(img_L, cv2.COLOR_BGR2RGB)
             else:
@@ -69,7 +71,8 @@ class DatasetJPEG(data.Dataset):
                 else:
                     img_L = cv2.cvtColor(img_L, cv2.COLOR_RGB2GRAY)
                 img_H = img_L.copy()
-                result, encimg = cv2.imencode('.jpg', img_L, [int(cv2.IMWRITE_JPEG_QUALITY), quality_factor])
+                result, encimg = cv2.imencode(
+                    '.jpg', img_L, [int(cv2.IMWRITE_JPEG_QUALITY), quality_factor])
                 img_L = cv2.imdecode(encimg, 0)
 
             # ---------------------------------
@@ -82,8 +85,10 @@ class DatasetJPEG(data.Dataset):
             else:
                 rnd_h = 0
                 rnd_w = 0
-            img_H = img_H[rnd_h:rnd_h + self.patch_size, rnd_w:rnd_w + self.patch_size]
-            img_L = img_L[rnd_h:rnd_h + self.patch_size, rnd_w:rnd_w + self.patch_size]
+            img_H = img_H[rnd_h:rnd_h + self.patch_size,
+                          rnd_w:rnd_w + self.patch_size]
+            img_L = img_L[rnd_h:rnd_h + self.patch_size,
+                          rnd_w:rnd_w + self.patch_size]
         else:
 
             H_path = self.paths_H[index]
@@ -97,7 +102,8 @@ class DatasetJPEG(data.Dataset):
                 img_H = util.imread_uint(H_path, 3)
                 img_L = img_H.copy()
                 img_L = cv2.cvtColor(img_L, cv2.COLOR_RGB2BGR)
-                result, encimg = cv2.imencode('.jpg', img_L, [int(cv2.IMWRITE_JPEG_QUALITY), quality_factor])
+                result, encimg = cv2.imencode(
+                    '.jpg', img_L, [int(cv2.IMWRITE_JPEG_QUALITY), quality_factor])
                 img_L = cv2.imdecode(encimg, 1)
                 img_L = cv2.cvtColor(img_L, cv2.COLOR_BGR2RGB)
             else:
@@ -107,7 +113,8 @@ class DatasetJPEG(data.Dataset):
                     img_H = cv2.cvtColor(img_H, cv2.COLOR_BGR2RGB)
                     img_H = util.rgb2ycbcr(img_H)
 
-                result, encimg = cv2.imencode('.jpg', img_H, [int(cv2.IMWRITE_JPEG_QUALITY), quality_factor])
+                result, encimg = cv2.imencode(
+                    '.jpg', img_H, [int(cv2.IMWRITE_JPEG_QUALITY), quality_factor])
                 img_L = cv2.imdecode(encimg, 0)
 
         img_L, img_H = util.uint2tensor3(img_L), util.uint2tensor3(img_H)

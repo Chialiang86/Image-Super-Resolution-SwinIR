@@ -1,5 +1,6 @@
 from models.model_plain import ModelPlain
 
+
 class ModelPlain2(ModelPlain):
     """Train with two inputs (L, C) and with pixel loss"""
 
@@ -17,4 +18,3 @@ class ModelPlain2(ModelPlain):
     # ----------------------------------------
     def netG_forward(self):
         self.E = self.netG(self.L, self.C)
-

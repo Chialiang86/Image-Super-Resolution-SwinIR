@@ -17,7 +17,6 @@ def define_G(opt):
     opt_net = opt['netG']
     net_type = opt_net['net_type']
 
-
     # ----------------------------------------
     # denoising task
     # ----------------------------------------
@@ -314,7 +313,11 @@ def define_F(opt, use_bn=False):
 """
 
 
-def init_weights(net, init_type='xavier_uniform', init_bn_type='uniform', gain=1):
+def init_weights(
+        net,
+        init_type='xavier_uniform',
+        init_bn_type='uniform',
+        gain=1):
     """
     # Kai Zhang, https://github.com/cszn/KAIR
     #
@@ -350,18 +353,21 @@ def init_weights(net, init_type='xavier_uniform', init_bn_type='uniform', gain=1
                 init.xavier_uniform_(m.weight.data, gain=gain)
 
             elif init_type == 'kaiming_normal':
-                init.kaiming_normal_(m.weight.data, a=0, mode='fan_in', nonlinearity='relu')
+                init.kaiming_normal_(
+                    m.weight.data, a=0, mode='fan_in', nonlinearity='relu')
                 m.weight.data.clamp_(-1, 1).mul_(gain)
 
             elif init_type == 'kaiming_uniform':
-                init.kaiming_uniform_(m.weight.data, a=0, mode='fan_in', nonlinearity='relu')
+                init.kaiming_uniform_(
+                    m.weight.data, a=0, mode='fan_in', nonlinearity='relu')
                 m.weight.data.mul_(gain)
 
             elif init_type == 'orthogonal':
                 init.orthogonal_(m.weight.data, gain=gain)
 
             else:
-                raise NotImplementedError('Initialization method [{:s}] is not implemented'.format(init_type))
+                raise NotImplementedError(
+                    'Initialization method [{:s}] is not implemented'.format(init_type))
 
             if m.bias is not None:
                 m.bias.data.zero_()
@@ -377,11 +383,21 @@ def init_weights(net, init_type='xavier_uniform', init_bn_type='uniform', gain=1
                     init.constant_(m.weight.data, 1.0)
                     init.constant_(m.bias.data, 0.0)
             else:
-                raise NotImplementedError('Initialization method [{:s}] is not implemented'.format(init_bn_type))
+                raise NotImplementedError(
+                    'Initialization method [{:s}] is not implemented'.format(init_bn_type))
 
     if init_type not in ['default', 'none']:
-        print('Initialization method [{:s} + {:s}], gain is [{:.2f}]'.format(init_type, init_bn_type, gain))
-        fn = functools.partial(init_fn, init_type=init_type, init_bn_type=init_bn_type, gain=gain)
+        print(
+            'Initialization method [{:s} + {:s}], gain is [{:.2f}]'.format(
+                init_type,
+                init_bn_type,
+                gain))
+        fn = functools.partial(
+            init_fn,
+            init_type=init_type,
+            init_bn_type=init_bn_type,
+            gain=gain)
         net.apply(fn)
     else:
-        print('Pass this initialization! Initialization was done during network defination!')
+        print(
+            'Pass this initialization! Initialization was done during network defination!')

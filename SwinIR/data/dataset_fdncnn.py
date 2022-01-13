@@ -51,7 +51,8 @@ class DatasetFDnCNN(data.Dataset):
             # ---------------------------------
             rnd_h = random.randint(0, max(0, H - self.patch_size))
             rnd_w = random.randint(0, max(0, W - self.patch_size))
-            patch_H = img_H[rnd_h:rnd_h + self.patch_size, rnd_w:rnd_w + self.patch_size, :]
+            patch_H = img_H[rnd_h:rnd_h + self.patch_size,
+                            rnd_w:rnd_w + self.patch_size, :]
 
             # ---------------------------------
             # augmentation - flip, rotate
@@ -69,9 +70,11 @@ class DatasetFDnCNN(data.Dataset):
             # get noise level
             # ---------------------------------
             # noise_level = torch.FloatTensor([np.random.randint(self.sigma_min, self.sigma_max)])/255.0
-            noise_level = torch.FloatTensor([np.random.uniform(self.sigma_min, self.sigma_max)])/255.0
+            noise_level = torch.FloatTensor(
+                [np.random.uniform(self.sigma_min, self.sigma_max)]) / 255.0
 
-            noise_level_map = torch.ones((1, img_L.size(1), img_L.size(2))).mul_(noise_level).float()  # torch.full((1, img_L.size(1), img_L.size(2)), noise_level)
+            noise_level_map = torch.ones((1, img_L.size(1), img_L.size(2))).mul_(
+                noise_level).float()  # torch.full((1, img_L.size(1), img_L.size(2)), noise_level)
 
             # ---------------------------------
             # add noise
@@ -88,13 +91,19 @@ class DatasetFDnCNN(data.Dataset):
             img_H = util.uint2single(img_H)
             img_L = np.copy(img_H)
             np.random.seed(seed=0)
-            img_L += np.random.normal(0, self.sigma_test/255.0, img_L.shape)
-            noise_level_map = torch.ones((1, img_L.shape[0], img_L.shape[1])).mul_(self.sigma_test/255.0).float()  # torch.full((1, img_L.size(1), img_L.size(2)), noise_level)
+            img_L += np.random.normal(0, self.sigma_test / 255.0, img_L.shape)
+            noise_level_map = torch.ones(
+                (1,
+                 img_L.shape[0],
+                 img_L.shape[1])).mul_(
+                self.sigma_test /
+                255.0).float()  # torch.full((1, img_L.size(1), img_L.size(2)), noise_level)
 
             # ---------------------------------
             # L/H image pairs
             # ---------------------------------
-            img_H, img_L = util.single2tensor3(img_H), util.single2tensor3(img_L)
+            img_H, img_L = util.single2tensor3(
+                img_H), util.single2tensor3(img_L)
 
         """
         # -------------------------------------

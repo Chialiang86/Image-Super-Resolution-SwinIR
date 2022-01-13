@@ -63,8 +63,10 @@ def define_Dataset(dataset_opt):
         from data.dataset_plainpatch import DatasetPlainPatch as D
 
     else:
-        raise NotImplementedError('Dataset [{:s}] is not found.'.format(dataset_type))
+        raise NotImplementedError(
+            'Dataset [{:s}] is not found.'.format(dataset_type))
 
     dataset = D(dataset_opt)
-    print('Dataset [{:s} - {:s}] is created.'.format(dataset.__class__.__name__, dataset_opt['name']))
+    print('Dataset [{:s} - {:s}] is created.'.format(
+        dataset.__class__.__name__, dataset_opt['name']))
     return dataset

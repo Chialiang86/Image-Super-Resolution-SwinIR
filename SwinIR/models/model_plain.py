@@ -15,6 +15,7 @@ from utils.utils_regularizers import regularizer_orth, regularizer_clip
 
 class ModelPlain(ModelBase):
     """Train with pixel loss"""
+
     def __init__(self, opt):
         super(ModelPlain, self).__init__(opt)
         # ------------------------------------
@@ -52,12 +53,20 @@ class ModelPlain(ModelBase):
         load_path_G = self.opt['path']['pretrained_netG']
         if load_path_G is not None:
             print('Loading model for G [{:s}] ...'.format(load_path_G))
-            self.load_network(load_path_G, self.netG, strict=self.opt_train['G_param_strict'], param_key='params')
+            self.load_network(
+                load_path_G,
+                self.netG,
+                strict=self.opt_train['G_param_strict'],
+                param_key='params')
         load_path_E = self.opt['path']['pretrained_netE']
         if self.opt_train['E_decay'] > 0:
             if load_path_E is not None:
                 print('Loading model for E [{:s}] ...'.format(load_path_E))
-                self.load_network(load_path_E, self.netE, strict=self.opt_train['E_param_strict'], param_key='params_ema')
+                self.load_network(
+                    load_path_E,
+                    self.netE,
+                    strict=self.opt_train['E_param_strict'],
+                    param_key='params_ema')
             else:
                 print('Copying model for E ...')
                 self.update_E(0)
@@ -80,7 +89,11 @@ class ModelPlain(ModelBase):
         if self.opt_train['E_decay'] > 0:
             self.save_network(self.save_dir, self.netE, 'E', iter_label)
         if self.opt_train['G_optimizer_reuse']:
-            self.save_optimizer(self.save_dir, self.G_optimizer, 'optimizerG', iter_label)
+            self.save_optimizer(
+                self.save_dir,
+                self.G_optimizer,
+                'optimizerG',
+                iter_label)
 
     # ----------------------------------------
     # define loss
@@ -96,9 +109,12 @@ class ModelPlain(ModelBase):
         elif G_lossfn_type == 'ssim':
             self.G_lossfn = SSIMLoss().to(self.device)
         elif G_lossfn_type == 'charbonnier':
-            self.G_lossfn = CharbonnierLoss(self.opt_train['G_charbonnier_eps']).to(self.device)
+            self.G_lossfn = CharbonnierLoss(
+                self.opt_train['G_charbonnier_eps']).to(
+                self.device)
         else:
-            raise NotImplementedError('Loss type [{:s}] is not found.'.format(G_lossfn_type))
+            raise NotImplementedError(
+                'Loss type [{:s}] is not found.'.format(G_lossfn_type))
         self.G_lossfn_weight = self.opt_train['G_lossfn_weight']
 
     # ----------------------------------------
@@ -111,16 +127,20 @@ class ModelPlain(ModelBase):
                 G_optim_params.append(v)
             else:
                 print('Params [{:s}] will not optimize.'.format(k))
-        self.G_optimizer = Adam(G_optim_params, lr=self.opt_train['G_optimizer_lr'], weight_decay=0)
+        self.G_optimizer = Adam(
+            G_optim_params,
+            lr=self.opt_train['G_optimizer_lr'],
+            weight_decay=0)
 
     # ----------------------------------------
     # define scheduler, only "MultiStepLR"
     # ----------------------------------------
     def define_scheduler(self):
-        self.schedulers.append(lr_scheduler.MultiStepLR(self.G_optimizer,
-                                                        self.opt_train['G_scheduler_milestones'],
-                                                        self.opt_train['G_scheduler_gamma']
-                                                        ))
+        self.schedulers.append(
+            lr_scheduler.MultiStepLR(
+                self.G_optimizer,
+                self.opt_train['G_scheduler_milestones'],
+                self.opt_train['G_scheduler_gamma']))
     """
     # ----------------------------------------
     # Optimization during training with data
@@ -157,7 +177,10 @@ class ModelPlain(ModelBase):
         # `clip_grad_norm` helps prevent the exploding gradient problem.
         G_optimizer_clipgrad = self.opt_train['G_optimizer_clipgrad'] if self.opt_train['G_optimizer_clipgrad'] else 0
         if G_optimizer_clipgrad > 0:
-            torch.nn.utils.clip_grad_norm_(self.parameters(), max_norm=self.opt_train['G_optimizer_clipgrad'], norm_type=2)
+            torch.nn.utils.clip_grad_norm_(
+                self.parameters(),
+                max_norm=self.opt_train['G_optimizer_clipgrad'],
+                norm_type=2)
 
         self.G_optimizer.step()
 
@@ -165,13 +188,16 @@ class ModelPlain(ModelBase):
         # regularizer
         # ------------------------------------
         G_regularizer_orthstep = self.opt_train['G_regularizer_orthstep'] if self.opt_train['G_regularizer_orthstep'] else 0
-        if G_regularizer_orthstep > 0 and current_step % G_regularizer_orthstep == 0 and current_step % self.opt['train']['checkpoint_save'] != 0:
+        if G_regularizer_orthstep > 0 and current_step % G_regularizer_orthstep == 0 and current_step % self.opt[
+                'train']['checkpoint_save'] != 0:
             self.netG.apply(regularizer_orth)
         G_regularizer_clipstep = self.opt_train['G_regularizer_clipstep'] if self.opt_train['G_regularizer_clipstep'] else 0
-        if G_regularizer_clipstep > 0 and current_step % G_regularizer_clipstep == 0 and current_step % self.opt['train']['checkpoint_save'] != 0:
+        if G_regularizer_clipstep > 0 and current_step % G_regularizer_clipstep == 0 and current_step % self.opt[
+                'train']['checkpoint_save'] != 0:
             self.netG.apply(regularizer_clip)
 
-        # self.log_dict['G_loss'] = G_loss.item()/self.E.size()[0]  # if `reduction='sum'`
+        # self.log_dict['G_loss'] = G_loss.item()/self.E.size()[0]  # if
+        # `reduction='sum'`
         self.log_dict['G_loss'] = G_loss.item()
 
         if self.opt_train['E_decay'] > 0:
@@ -192,7 +218,12 @@ class ModelPlain(ModelBase):
     def testx8(self):
         self.netG.eval()
         with torch.no_grad():
-            self.E = test_mode(self.netG, self.L, mode=3, sf=self.opt['scale'], modulo=1)
+            self.E = test_mode(
+                self.netG,
+                self.L,
+                mode=3,
+                sf=self.opt['scale'],
+                modulo=1)
         self.netG.train()
 
     # ----------------------------------------

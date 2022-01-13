@@ -32,7 +32,7 @@ Sequential(
       (22): ReLU(inplace)
       (23): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
       (24): ReLU(inplace)
-      (25*): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1)) 
+      (25*): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
       (26): ReLU(inplace)
       (27): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
       (28): Conv2d(512, 512, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
@@ -52,7 +52,16 @@ Sequential(
 # Perceptual loss
 # --------------------------------------------
 class VGGFeatureExtractor(nn.Module):
-    def __init__(self, feature_layer=[2,7,16,25,34], use_input_norm=True, use_range_norm=False):
+    def __init__(
+            self,
+            feature_layer=[
+                2,
+                7,
+                16,
+                25,
+                34],
+            use_input_norm=True,
+            use_range_norm=False):
         super(VGGFeatureExtractor, self).__init__()
         '''
         use_input_norm: If True, x: [0, 1] --> (x - mean) / std
@@ -70,10 +79,12 @@ class VGGFeatureExtractor(nn.Module):
         if self.list_outputs:
             self.features = nn.Sequential()
             feature_layer = [-1] + feature_layer
-            for i in range(len(feature_layer)-1):
-                self.features.add_module('child'+str(i), nn.Sequential(*list(model.features.children())[(feature_layer[i]+1):(feature_layer[i+1]+1)]))
+            for i in range(len(feature_layer) - 1):
+                self.features.add_module('child' + str(i), nn.Sequential(*list(
+                    model.features.children())[(feature_layer[i] + 1):(feature_layer[i + 1] + 1)]))
         else:
-            self.features = nn.Sequential(*list(model.features.children())[:(feature_layer + 1)])
+            self.features = nn.Sequential(
+                *list(model.features.children())[:(feature_layer + 1)])
 
         print(self.features)
 
@@ -100,9 +111,28 @@ class PerceptualLoss(nn.Module):
     """VGG Perceptual loss
     """
 
-    def __init__(self, feature_layer=[2,7,16,25,34], weights=[0.1,0.1,1.0,1.0,1.0], lossfn_type='l1', use_input_norm=True, use_range_norm=False):
+    def __init__(
+            self,
+            feature_layer=[
+                2,
+                7,
+                16,
+                25,
+                34],
+            weights=[
+                0.1,
+                0.1,
+                1.0,
+                1.0,
+                1.0],
+        lossfn_type='l1',
+        use_input_norm=True,
+            use_range_norm=False):
         super(PerceptualLoss, self).__init__()
-        self.vgg = VGGFeatureExtractor(feature_layer=feature_layer, use_input_norm=use_input_norm, use_range_norm=use_range_norm)
+        self.vgg = VGGFeatureExtractor(
+            feature_layer=feature_layer,
+            use_input_norm=use_input_norm,
+            use_range_norm=use_range_norm)
         self.lossfn_type = lossfn_type
         self.weights = weights
         if self.lossfn_type == 'l1':
@@ -132,6 +162,8 @@ class PerceptualLoss(nn.Module):
 # --------------------------------------------
 # GAN loss: gan, ragan
 # --------------------------------------------
+
+
 class GANLoss(nn.Module):
     def __init__(self, gan_type, real_label_val=1.0, fake_label_val=0.0):
         super(GANLoss, self).__init__()
@@ -156,7 +188,9 @@ class GANLoss(nn.Module):
 
             self.loss = softplusgan_loss
         else:
-            raise NotImplementedError('GAN type [{:s}] is not found'.format(self.gan_type))
+            raise NotImplementedError(
+                'GAN type [{:s}] is not found'.format(
+                    self.gan_type))
 
     def get_target_label(self, input, target_is_real):
         if self.gan_type in ['wgan', 'softplusgan']:
@@ -194,7 +228,8 @@ class TVLoss(nn.Module):
         count_w = self.tensor_size(x[:, :, :, 1:])
         h_tv = torch.pow((x[:, :, 1:, :] - x[:, :, :h_x - 1, :]), 2).sum()
         w_tv = torch.pow((x[:, :, :, 1:] - x[:, :, :, :w_x - 1]), 2).sum()
-        return self.tv_loss_weight * 2 * (h_tv / count_h + w_tv / count_w) / batch_size
+        return self.tv_loss_weight * 2 * \
+            (h_tv / count_h + w_tv / count_w) / batch_size
 
     @staticmethod
     def tensor_size(t):
@@ -215,7 +250,6 @@ class CharbonnierLoss(nn.Module):
         diff = x - y
         loss = torch.mean(torch.sqrt((diff * diff) + self.eps))
         return loss
-
 
 
 def r1_penalty(real_pred, real_img):

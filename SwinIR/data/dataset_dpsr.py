@@ -67,24 +67,29 @@ class DatasetDPSR(data.Dataset):
             # --------------------------------
             rnd_h = random.randint(0, max(0, H - self.L_size))
             rnd_w = random.randint(0, max(0, W - self.L_size))
-            img_L = img_L[rnd_h:rnd_h + self.L_size, rnd_w:rnd_w + self.L_size, :]
+            img_L = img_L[rnd_h:rnd_h + self.L_size,
+                          rnd_w:rnd_w + self.L_size, :]
 
             # --------------------------------
             # crop corresponding H patch
             # --------------------------------
             rnd_h_H, rnd_w_H = int(rnd_h * self.sf), int(rnd_w * self.sf)
-            img_H = img_H[rnd_h_H:rnd_h_H + self.patch_size, rnd_w_H:rnd_w_H + self.patch_size, :]
+            img_H = img_H[rnd_h_H:rnd_h_H + self.patch_size,
+                          rnd_w_H:rnd_w_H + self.patch_size, :]
 
             # --------------------------------
             # augmentation - flip and/or rotate
             # --------------------------------
             mode = random.randint(0, 7)
-            img_L, img_H = util.augment_img(img_L, mode=mode), util.augment_img(img_H, mode=mode)
+            img_L, img_H = util.augment_img(
+                img_L, mode=mode), util.augment_img(
+                img_H, mode=mode)
 
             # --------------------------------
             # get patch pairs
             # --------------------------------
-            img_H, img_L = util.single2tensor3(img_H), util.single2tensor3(img_L)
+            img_H, img_L = util.single2tensor3(
+                img_H), util.single2tensor3(img_L)
 
             # --------------------------------
             # select noise level and get Gaussian noise
@@ -92,13 +97,15 @@ class DatasetDPSR(data.Dataset):
             if random.random() < 0.1:
                 noise_level = torch.zeros(1).float()
             else:
-                noise_level = torch.FloatTensor([np.random.uniform(self.sigma_min, self.sigma_max)])/255.0
+                noise_level = torch.FloatTensor(
+                    [np.random.uniform(self.sigma_min, self.sigma_max)]) / 255.0
                 # noise_level = torch.rand(1)*50/255.0
                 # noise_level = torch.min(torch.from_numpy(np.float32([7*np.random.chisquare(2.5)/255.0])),torch.Tensor([50./255.]))
-    
+
         else:
 
-            img_H, img_L = util.single2tensor3(img_H), util.single2tensor3(img_L)
+            img_H, img_L = util.single2tensor3(
+                img_H), util.single2tensor3(img_L)
 
             noise_level = torch.FloatTensor([self.sigma_test])
 
@@ -114,14 +121,12 @@ class DatasetDPSR(data.Dataset):
         M_vector = noise_level.unsqueeze(1).unsqueeze(1)
         M = M_vector.repeat(1, img_L.size()[-2], img_L.size()[-1])
 
-
         """
         # -------------------------------------
         # concat L and noise level map M
         # -------------------------------------
         """
         img_L = torch.cat((img_L, M), 0)
-
 
         L_path = H_path
 

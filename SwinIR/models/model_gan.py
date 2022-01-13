@@ -12,6 +12,7 @@ from models.loss_ssim import SSIMLoss
 
 class ModelGAN(ModelBase):
     """Train with pixel-VGG-GAN loss"""
+
     def __init__(self, opt):
         super(ModelGAN, self).__init__(opt)
         # ------------------------------------
@@ -53,12 +54,18 @@ class ModelGAN(ModelBase):
         load_path_G = self.opt['path']['pretrained_netG']
         if load_path_G is not None:
             print('Loading model for G [{:s}] ...'.format(load_path_G))
-            self.load_network(load_path_G, self.netG, strict=self.opt_train['G_param_strict'])
+            self.load_network(
+                load_path_G,
+                self.netG,
+                strict=self.opt_train['G_param_strict'])
         load_path_E = self.opt['path']['pretrained_netE']
         if self.opt_train['E_decay'] > 0:
             if load_path_E is not None:
                 print('Loading model for E [{:s}] ...'.format(load_path_E))
-                self.load_network(load_path_E, self.netE, strict=self.opt_train['E_param_strict'])
+                self.load_network(
+                    load_path_E,
+                    self.netE,
+                    strict=self.opt_train['E_param_strict'])
             else:
                 print('Copying model for E')
                 self.update_E(0)
@@ -67,7 +74,10 @@ class ModelGAN(ModelBase):
         load_path_D = self.opt['path']['pretrained_netD']
         if self.opt['is_train'] and load_path_D is not None:
             print('Loading model for D [{:s}] ...'.format(load_path_D))
-            self.load_network(load_path_D, self.netD, strict=self.opt_train['D_param_strict'])
+            self.load_network(
+                load_path_D,
+                self.netD,
+                strict=self.opt_train['D_param_strict'])
 
     # ----------------------------------------
     # load optimizerG and optimizerD
@@ -91,9 +101,17 @@ class ModelGAN(ModelBase):
         if self.opt_train['E_decay'] > 0:
             self.save_network(self.save_dir, self.netE, 'E', iter_label)
         if self.opt_train['G_optimizer_reuse']:
-            self.save_optimizer(self.save_dir, self.G_optimizer, 'optimizerG', iter_label)
+            self.save_optimizer(
+                self.save_dir,
+                self.G_optimizer,
+                'optimizerG',
+                iter_label)
         if self.opt_train['D_optimizer_reuse']:
-            self.save_optimizer(self.save_dir, self.D_optimizer, 'optimizerD', iter_label)
+            self.save_optimizer(
+                self.save_dir,
+                self.D_optimizer,
+                'optimizerD',
+                iter_label)
 
     # ----------------------------------------
     # define loss
@@ -113,7 +131,8 @@ class ModelGAN(ModelBase):
             elif G_lossfn_type == 'ssim':
                 self.G_lossfn = SSIMLoss().to(self.device)
             else:
-                raise NotImplementedError('Loss type [{:s}] is not found.'.format(G_lossfn_type))
+                raise NotImplementedError(
+                    'Loss type [{:s}] is not found.'.format(G_lossfn_type))
             self.G_lossfn_weight = self.opt_train['G_lossfn_weight']
         else:
             print('Do not use pixel loss.')
@@ -129,9 +148,20 @@ class ModelGAN(ModelBase):
             F_use_input_norm = self.opt_train['F_use_input_norm']
             F_use_range_norm = self.opt_train['F_use_range_norm']
             if self.opt['dist']:
-                self.F_lossfn = PerceptualLoss(feature_layer=F_feature_layer, weights=F_weights, lossfn_type=F_lossfn_type, use_input_norm=F_use_input_norm, use_range_norm=F_use_range_norm).to(self.device)
+                self.F_lossfn = PerceptualLoss(
+                    feature_layer=F_feature_layer,
+                    weights=F_weights,
+                    lossfn_type=F_lossfn_type,
+                    use_input_norm=F_use_input_norm,
+                    use_range_norm=F_use_range_norm).to(
+                    self.device)
             else:
-                self.F_lossfn = PerceptualLoss(feature_layer=F_feature_layer, weights=F_weights, lossfn_type=F_lossfn_type, use_input_norm=F_use_input_norm, use_range_norm=F_use_range_norm)
+                self.F_lossfn = PerceptualLoss(
+                    feature_layer=F_feature_layer,
+                    weights=F_weights,
+                    lossfn_type=F_lossfn_type,
+                    use_input_norm=F_use_input_norm,
+                    use_range_norm=F_use_range_norm)
                 self.F_lossfn.vgg = self.model_to_device(self.F_lossfn.vgg)
                 self.F_lossfn.lossfn = self.F_lossfn.lossfn.to(self.device)
             self.F_lossfn_weight = self.opt_train['F_lossfn_weight']
@@ -142,7 +172,9 @@ class ModelGAN(ModelBase):
         # ------------------------------------
         # 3) D_loss
         # ------------------------------------
-        self.D_lossfn = GANLoss(self.opt_train['gan_type'], 1.0, 0.0).to(self.device)
+        self.D_lossfn = GANLoss(
+            self.opt_train['gan_type'], 1.0, 0.0).to(
+            self.device)
         self.D_lossfn_weight = self.opt_train['D_lossfn_weight']
 
         self.D_update_ratio = self.opt_train['D_update_ratio'] if self.opt_train['D_update_ratio'] else 1
@@ -159,21 +191,29 @@ class ModelGAN(ModelBase):
             else:
                 print('Params [{:s}] will not optimize.'.format(k))
 
-        self.G_optimizer = Adam(G_optim_params, lr=self.opt_train['G_optimizer_lr'], weight_decay=0)
-        self.D_optimizer = Adam(self.netD.parameters(), lr=self.opt_train['D_optimizer_lr'], weight_decay=0)
+        self.G_optimizer = Adam(
+            G_optim_params,
+            lr=self.opt_train['G_optimizer_lr'],
+            weight_decay=0)
+        self.D_optimizer = Adam(
+            self.netD.parameters(),
+            lr=self.opt_train['D_optimizer_lr'],
+            weight_decay=0)
 
     # ----------------------------------------
     # define scheduler, only "MultiStepLR"
     # ----------------------------------------
     def define_scheduler(self):
-        self.schedulers.append(lr_scheduler.MultiStepLR(self.G_optimizer,
-                                                        self.opt_train['G_scheduler_milestones'],
-                                                        self.opt_train['G_scheduler_gamma']
-                                                        ))
-        self.schedulers.append(lr_scheduler.MultiStepLR(self.D_optimizer,
-                                                        self.opt_train['D_scheduler_milestones'],
-                                                        self.opt_train['D_scheduler_gamma']
-                                                        ))
+        self.schedulers.append(
+            lr_scheduler.MultiStepLR(
+                self.G_optimizer,
+                self.opt_train['G_scheduler_milestones'],
+                self.opt_train['G_scheduler_gamma']))
+        self.schedulers.append(
+            lr_scheduler.MultiStepLR(
+                self.D_optimizer,
+                self.opt_train['D_scheduler_milestones'],
+                self.opt_train['D_scheduler_gamma']))
 
     """
     # ----------------------------------------
@@ -218,15 +258,17 @@ class ModelGAN(ModelBase):
                 F_loss = self.F_lossfn_weight * self.F_lossfn(self.E, self.H)
                 loss_G_total += F_loss                 # 2) VGG feature loss
 
-            if self.opt['train']['gan_type'] in ['gan', 'lsgan', 'wgan', 'softplusgan']:
+            if self.opt['train']['gan_type'] in [
+                    'gan', 'lsgan', 'wgan', 'softplusgan']:
                 pred_g_fake = self.netD(self.E)
-                D_loss = self.D_lossfn_weight * self.D_lossfn(pred_g_fake, True)
+                D_loss = self.D_lossfn_weight * \
+                    self.D_lossfn(pred_g_fake, True)
             elif self.opt['train']['gan_type'] == 'ragan':
                 pred_d_real = self.netD(self.H).detach()
                 pred_g_fake = self.netD(self.E)
                 D_loss = self.D_lossfn_weight * (
-                        self.D_lossfn(pred_d_real - torch.mean(pred_g_fake, 0, True), False) +
-                        self.D_lossfn(pred_g_fake - torch.mean(pred_d_real, 0, True), True)) / 2
+                    self.D_lossfn(pred_d_real - torch.mean(pred_g_fake, 0, True), False) +
+                    self.D_lossfn(pred_g_fake - torch.mean(pred_d_real, 0, True), True)) / 2
             loss_G_total += D_loss                    # 3) GAN loss
 
             loss_G_total.backward()
@@ -246,24 +288,29 @@ class ModelGAN(ModelBase):
         # an inplace operation",
         # we separate the backwards for real and fake, and also detach the
         # tensor for calculating mean.
-        if self.opt_train['gan_type'] in ['gan', 'lsgan', 'wgan', 'softplusgan']:
+        if self.opt_train['gan_type'] in [
+                'gan', 'lsgan', 'wgan', 'softplusgan']:
             # real
             pred_d_real = self.netD(self.H)                # 1) real data
             l_d_real = self.D_lossfn(pred_d_real, True)
             l_d_real.backward()
             # fake
-            pred_d_fake = self.netD(self.E.detach().clone()) # 2) fake data, detach to avoid BP to G
+            # 2) fake data, detach to avoid BP to G
+            pred_d_fake = self.netD(self.E.detach().clone())
             l_d_fake = self.D_lossfn(pred_d_fake, False)
             l_d_fake.backward()
         elif self.opt_train['gan_type'] == 'ragan':
             # real
-            pred_d_fake = self.netD(self.E).detach()       # 1) fake data, detach to avoid BP to G
+            # 1) fake data, detach to avoid BP to G
+            pred_d_fake = self.netD(self.E).detach()
             pred_d_real = self.netD(self.H)                # 2) real data
-            l_d_real = 0.5 * self.D_lossfn(pred_d_real - torch.mean(pred_d_fake, 0, True), True)
+            l_d_real = 0.5 * \
+                self.D_lossfn(pred_d_real - torch.mean(pred_d_fake, 0, True), True)
             l_d_real.backward()
             # fake
             pred_d_fake = self.netD(self.E.detach())
-            l_d_fake = 0.5 * self.D_lossfn(pred_d_fake - torch.mean(pred_d_real.detach(), 0, True), False)
+            l_d_fake = 0.5 * \
+                self.D_lossfn(pred_d_fake - torch.mean(pred_d_real.detach(), 0, True), False)
             l_d_fake.backward()
 
         self.D_optimizer.step()
@@ -350,4 +397,3 @@ class ModelGAN(ModelBase):
     def info_params(self):
         msg = self.describe_params(self.netG)
         return msg
-

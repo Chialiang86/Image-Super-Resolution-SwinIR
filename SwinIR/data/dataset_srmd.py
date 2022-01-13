@@ -34,7 +34,8 @@ class DatasetSRMD(data.Dataset):
         # -------------------------------------
         # PCA projection matrix
         # -------------------------------------
-        self.p = hdf5storage.loadmat(os.path.join('kernels', 'srmd_pca_pytorch.mat'))['p']
+        self.p = hdf5storage.loadmat(os.path.join(
+            'kernels', 'srmd_pca_pytorch.mat'))['p']
         self.ksize = int(np.sqrt(self.p.shape[-1]))  # kernel size
 
         # ------------------------------------
@@ -62,13 +63,15 @@ class DatasetSRMD(data.Dataset):
         # ------------------------------------
         if self.opt['phase'] == 'train':
             l_max = 10
-            theta = np.pi*random.random()
-            l1 = 0.1+l_max*random.random()
-            l2 = 0.1+(l1-0.1)*random.random()
+            theta = np.pi * random.random()
+            l1 = 0.1 + l_max * random.random()
+            l2 = 0.1 + (l1 - 0.1) * random.random()
 
-            kernel = utils_sisr.anisotropic_Gaussian(ksize=self.ksize, theta=theta, l1=l1, l2=l2)
+            kernel = utils_sisr.anisotropic_Gaussian(
+                ksize=self.ksize, theta=theta, l1=l1, l2=l2)
         else:
-            kernel = utils_sisr.anisotropic_Gaussian(ksize=self.ksize, theta=np.pi, l1=0.1, l2=0.1)
+            kernel = utils_sisr.anisotropic_Gaussian(
+                ksize=self.ksize, theta=np.pi, l1=0.1, l2=0.1)
 
         k = np.reshape(kernel, (-1), order="F")
         k_reduced = np.dot(self.p, k)
@@ -94,24 +97,29 @@ class DatasetSRMD(data.Dataset):
             # --------------------------------
             rnd_h = random.randint(0, max(0, H - self.L_size))
             rnd_w = random.randint(0, max(0, W - self.L_size))
-            img_L = img_L[rnd_h:rnd_h + self.L_size, rnd_w:rnd_w + self.L_size, :]
+            img_L = img_L[rnd_h:rnd_h + self.L_size,
+                          rnd_w:rnd_w + self.L_size, :]
 
             # --------------------------------
             # crop corresponding H patch
             # --------------------------------
             rnd_h_H, rnd_w_H = int(rnd_h * self.sf), int(rnd_w * self.sf)
-            img_H = img_H[rnd_h_H:rnd_h_H + self.patch_size, rnd_w_H:rnd_w_H + self.patch_size, :]
+            img_H = img_H[rnd_h_H:rnd_h_H + self.patch_size,
+                          rnd_w_H:rnd_w_H + self.patch_size, :]
 
             # --------------------------------
             # augmentation - flip and/or rotate
             # --------------------------------
             mode = random.randint(0, 7)
-            img_L, img_H = util.augment_img(img_L, mode=mode), util.augment_img(img_H, mode=mode)
+            img_L, img_H = util.augment_img(
+                img_L, mode=mode), util.augment_img(
+                img_H, mode=mode)
 
             # --------------------------------
             # get patch pairs
             # --------------------------------
-            img_H, img_L = util.single2tensor3(img_H), util.single2tensor3(img_L)
+            img_H, img_L = util.single2tensor3(
+                img_H), util.single2tensor3(img_L)
 
             # --------------------------------
             # select noise level and get Gaussian noise
@@ -119,13 +127,15 @@ class DatasetSRMD(data.Dataset):
             if random.random() < 0.1:
                 noise_level = torch.zeros(1).float()
             else:
-                noise_level = torch.FloatTensor([np.random.uniform(self.sigma_min, self.sigma_max)])/255.0
+                noise_level = torch.FloatTensor(
+                    [np.random.uniform(self.sigma_min, self.sigma_max)]) / 255.0
                 # noise_level = torch.rand(1)*50/255.0
                 # noise_level = torch.min(torch.from_numpy(np.float32([7*np.random.chisquare(2.5)/255.0])),torch.Tensor([50./255.]))
-    
+
         else:
 
-            img_H, img_L = util.single2tensor3(img_H), util.single2tensor3(img_L)
+            img_H, img_L = util.single2tensor3(
+                img_H), util.single2tensor3(img_L)
             noise_level = noise_level = torch.FloatTensor([self.sigma_test])
 
         # ------------------------------------
@@ -137,7 +147,8 @@ class DatasetSRMD(data.Dataset):
         # ------------------------------------
         # get degradation map M
         # ------------------------------------
-        M_vector = torch.cat((k_reduced, noise_level), 0).unsqueeze(1).unsqueeze(1)
+        M_vector = torch.cat((k_reduced, noise_level),
+                             0).unsqueeze(1).unsqueeze(1)
         M = M_vector.repeat(1, img_L.size()[-2], img_L.size()[-1])
 
         """

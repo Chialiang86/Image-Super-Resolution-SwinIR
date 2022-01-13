@@ -42,7 +42,8 @@ def splits(a, sf):
 
 
 def c2c(x):
-    return torch.from_numpy(np.stack([np.float32(x.real), np.float32(x.imag)], axis=-1))
+    return torch.from_numpy(
+        np.stack([np.float32(x.real), np.float32(x.imag)], axis=-1))
 
 
 def r2c(x):
@@ -55,13 +56,13 @@ def cdiv(x, y):
     a, b = x[..., 0], x[..., 1]
     c, d = y[..., 0], y[..., 1]
     cd2 = c**2 + d**2
-    return torch.stack([(a*c+b*d)/cd2, (b*c-a*d)/cd2], -1)
+    return torch.stack([(a * c + b * d) / cd2, (b * c - a * d) / cd2], -1)
 
 
 def crdiv(x, y):
     # complex/real division
     a, b = x[..., 0], x[..., 1]
-    return torch.stack([a/y, b/y], -1)
+    return torch.stack([a / y, b / y], -1)
 
 
 def csum(x, y):
@@ -71,11 +72,11 @@ def csum(x, y):
 
 def cabs(x):
     # modulus of a complex number
-    return torch.pow(x[..., 0]**2+x[..., 1]**2, 0.5)
+    return torch.pow(x[..., 0]**2 + x[..., 1]**2, 0.5)
 
 
 def cabs2(x):
-    return x[..., 0]**2+x[..., 1]**2
+    return x[..., 0]**2 + x[..., 1]**2
 
 
 def cmul(t1, t2):
@@ -90,7 +91,8 @@ def cmul(t1, t2):
     '''
     real1, imag1 = t1[..., 0], t1[..., 1]
     real2, imag2 = t2[..., 0], t2[..., 1]
-    return torch.stack([real1 * real2 - imag1 * imag2, real1 * imag2 + imag1 * real2], dim=-1)
+    return torch.stack([real1 * real2 - imag1 * imag2,
+                       real1 * imag2 + imag1 * real2], dim=-1)
 
 
 def cconj(t, inplace=False):
@@ -142,12 +144,18 @@ def p2o(psf, shape):
         otf: NxCxHxWx2
     '''
     otf = torch.zeros(psf.shape[:-2] + shape).type_as(psf)
-    otf[...,:psf.shape[2],:psf.shape[3]].copy_(psf)
+    otf[..., :psf.shape[2], :psf.shape[3]].copy_(psf)
     for axis, axis_size in enumerate(psf.shape[2:]):
-        otf = torch.roll(otf, -int(axis_size / 2), dims=axis+2)
+        otf = torch.roll(otf, -int(axis_size / 2), dims=axis + 2)
     otf = torch.rfft(otf, 2, onesided=False)
-    n_ops = torch.sum(torch.tensor(psf.shape).type_as(psf) * torch.log2(torch.tensor(psf.shape).type_as(psf)))
-    otf[..., 1][torch.abs(otf[..., 1]) < n_ops*2.22e-16] = torch.tensor(0).type_as(psf)
+    n_ops = torch.sum(
+        torch.tensor(
+            psf.shape).type_as(psf) *
+        torch.log2(
+            torch.tensor(
+                psf.shape).type_as(psf)))
+    otf[..., 1][torch.abs(otf[..., 1]) < n_ops *
+                2.22e-16] = torch.tensor(0).type_as(psf)
     return otf
 
 
@@ -159,7 +167,13 @@ def upsample(x, sf=3):
     x: tensor image, NxCxWxH
     '''
     st = 0
-    z = torch.zeros((x.shape[0], x.shape[1], x.shape[2]*sf, x.shape[3]*sf)).type_as(x)
+    z = torch.zeros(
+        (x.shape[0],
+         x.shape[1],
+         x.shape[2] *
+         sf,
+         x.shape[3] *
+         sf)).type_as(x)
     z[..., st::sf, st::sf].copy_(x)
     return z
 
@@ -189,7 +203,17 @@ def downsample_np(x, sf=3):
 
 
 class ResUNet(nn.Module):
-    def __init__(self, in_nc=4, out_nc=3, nc=[64, 128, 256, 512], nb=2, act_mode='R', downsample_mode='strideconv', upsample_mode='convtranspose'):
+    def __init__(self,
+                 in_nc=4,
+                 out_nc=3,
+                 nc=[64,
+                     128,
+                     256,
+                     512],
+                 nb=2,
+                 act_mode='R',
+                 downsample_mode='strideconv',
+                 upsample_mode='convtranspose'):
         super(ResUNet, self).__init__()
 
         self.m_head = B.conv(in_nc, nc[0], bias=False, mode='C')
@@ -202,13 +226,57 @@ class ResUNet(nn.Module):
         elif downsample_mode == 'strideconv':
             downsample_block = B.downsample_strideconv
         else:
-            raise NotImplementedError('downsample mode [{:s}] is not found'.format(downsample_mode))
+            raise NotImplementedError(
+                'downsample mode [{:s}] is not found'.format(downsample_mode))
 
-        self.m_down1 = B.sequential(*[B.ResBlock(nc[0], nc[0], bias=False, mode='C'+act_mode+'C') for _ in range(nb)], downsample_block(nc[0], nc[1], bias=False, mode='2'))
-        self.m_down2 = B.sequential(*[B.ResBlock(nc[1], nc[1], bias=False, mode='C'+act_mode+'C') for _ in range(nb)], downsample_block(nc[1], nc[2], bias=False, mode='2'))
-        self.m_down3 = B.sequential(*[B.ResBlock(nc[2], nc[2], bias=False, mode='C'+act_mode+'C') for _ in range(nb)], downsample_block(nc[2], nc[3], bias=False, mode='2'))
+        self.m_down1 = B.sequential(
+            *
+            [
+                B.ResBlock(
+                    nc[0],
+                    nc[0],
+                    bias=False,
+                    mode='C' +
+                    act_mode +
+                    'C') for _ in range(nb)],
+            downsample_block(
+                nc[0],
+                nc[1],
+                bias=False,
+                mode='2'))
+        self.m_down2 = B.sequential(
+            *
+            [
+                B.ResBlock(
+                    nc[1],
+                    nc[1],
+                    bias=False,
+                    mode='C' +
+                    act_mode +
+                    'C') for _ in range(nb)],
+            downsample_block(
+                nc[1],
+                nc[2],
+                bias=False,
+                mode='2'))
+        self.m_down3 = B.sequential(
+            *
+            [
+                B.ResBlock(
+                    nc[2],
+                    nc[2],
+                    bias=False,
+                    mode='C' +
+                    act_mode +
+                    'C') for _ in range(nb)],
+            downsample_block(
+                nc[2],
+                nc[3],
+                bias=False,
+                mode='2'))
 
-        self.m_body  = B.sequential(*[B.ResBlock(nc[3], nc[3], bias=False, mode='C'+act_mode+'C') for _ in range(nb)])
+        self.m_body = B.sequential(
+            *[B.ResBlock(nc[3], nc[3], bias=False, mode='C' + act_mode + 'C') for _ in range(nb)])
 
         # upsample
         if upsample_mode == 'upconv':
@@ -218,19 +286,62 @@ class ResUNet(nn.Module):
         elif upsample_mode == 'convtranspose':
             upsample_block = B.upsample_convtranspose
         else:
-            raise NotImplementedError('upsample mode [{:s}] is not found'.format(upsample_mode))
+            raise NotImplementedError(
+                'upsample mode [{:s}] is not found'.format(upsample_mode))
 
-        self.m_up3 = B.sequential(upsample_block(nc[3], nc[2], bias=False, mode='2'), *[B.ResBlock(nc[2], nc[2], bias=False, mode='C'+act_mode+'C') for _ in range(nb)])
-        self.m_up2 = B.sequential(upsample_block(nc[2], nc[1], bias=False, mode='2'), *[B.ResBlock(nc[1], nc[1], bias=False, mode='C'+act_mode+'C') for _ in range(nb)])
-        self.m_up1 = B.sequential(upsample_block(nc[1], nc[0], bias=False, mode='2'), *[B.ResBlock(nc[0], nc[0], bias=False, mode='C'+act_mode+'C') for _ in range(nb)])
+        self.m_up3 = B.sequential(
+            upsample_block(
+                nc[3],
+                nc[2],
+                bias=False,
+                mode='2'),
+            *
+            [
+                B.ResBlock(
+                    nc[2],
+                    nc[2],
+                    bias=False,
+                    mode='C' +
+                    act_mode +
+                    'C') for _ in range(nb)])
+        self.m_up2 = B.sequential(
+            upsample_block(
+                nc[2],
+                nc[1],
+                bias=False,
+                mode='2'),
+            *
+            [
+                B.ResBlock(
+                    nc[1],
+                    nc[1],
+                    bias=False,
+                    mode='C' +
+                    act_mode +
+                    'C') for _ in range(nb)])
+        self.m_up1 = B.sequential(
+            upsample_block(
+                nc[1],
+                nc[0],
+                bias=False,
+                mode='2'),
+            *
+            [
+                B.ResBlock(
+                    nc[0],
+                    nc[0],
+                    bias=False,
+                    mode='C' +
+                    act_mode +
+                    'C') for _ in range(nb)])
 
         self.m_tail = B.conv(nc[0], out_nc, bias=False, mode='C')
 
     def forward(self, x):
-        
+
         h, w = x.size()[-2:]
-        paddingBottom = int(np.ceil(h/8)*8-h)
-        paddingRight = int(np.ceil(w/8)*8-w)
+        paddingBottom = int(np.ceil(h / 8) * 8 - h)
+        paddingRight = int(np.ceil(w / 8) * 8 - w)
         x = nn.ReplicationPad2d((0, paddingRight, 0, paddingBottom))(x)
 
         x1 = self.m_head(x)
@@ -238,10 +349,10 @@ class ResUNet(nn.Module):
         x3 = self.m_down2(x2)
         x4 = self.m_down3(x3)
         x = self.m_body(x4)
-        x = self.m_up3(x+x4)
-        x = self.m_up2(x+x3)
-        x = self.m_up1(x+x2)
-        x = self.m_tail(x+x1)
+        x = self.m_up3(x + x4)
+        x = self.m_up2(x + x3)
+        x = self.m_up1(x + x2)
+        x = self.m_tail(x + x1)
 
         x = x[..., :h, :w]
 
@@ -263,13 +374,13 @@ class DataNet(nn.Module):
         super(DataNet, self).__init__()
 
     def forward(self, x, FB, FBC, F2B, FBFy, alpha, sf):
-        FR = FBFy + torch.rfft(alpha*x, 2, onesided=False)
+        FR = FBFy + torch.rfft(alpha * x, 2, onesided=False)
         x1 = cmul(FB, FR)
         FBR = torch.mean(splits(x1, sf), dim=-1, keepdim=False)
         invW = torch.mean(splits(F2B, sf), dim=-1, keepdim=False)
         invWBR = cdiv(FBR, csum(invW, alpha))
         FCBinvWBR = cmul(FBC, invWBR.repeat(1, 1, sf, sf, 1))
-        FX = (FR-FCBinvWBR)/alpha.unsqueeze(-1)
+        FX = (FR - FCBinvWBR) / alpha.unsqueeze(-1)
         Xest = torch.irfft(FX, 2, onesided=False)
 
         return Xest
@@ -286,12 +397,12 @@ class HyPaNet(nn.Module):
     def __init__(self, in_nc=2, out_nc=8, channel=64):
         super(HyPaNet, self).__init__()
         self.mlp = nn.Sequential(
-                nn.Conv2d(in_nc, channel, 1, padding=0, bias=True),
-                nn.ReLU(inplace=True),
-                nn.Conv2d(channel, channel, 1, padding=0, bias=True),
-                nn.ReLU(inplace=True),
-                nn.Conv2d(channel, out_nc, 1, padding=0, bias=True),
-                nn.Softplus())
+            nn.Conv2d(in_nc, channel, 1, padding=0, bias=True),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(channel, channel, 1, padding=0, bias=True),
+            nn.ReLU(inplace=True),
+            nn.Conv2d(channel, out_nc, 1, padding=0, bias=True),
+            nn.Softplus())
 
     def forward(self, x):
         x = self.mlp(x) + 1e-6
@@ -307,12 +418,31 @@ class HyPaNet(nn.Module):
 
 
 class USRNet(nn.Module):
-    def __init__(self, n_iter=8, h_nc=64, in_nc=4, out_nc=3, nc=[64, 128, 256, 512], nb=2, act_mode='R', downsample_mode='strideconv', upsample_mode='convtranspose'):
+    def __init__(self,
+                 n_iter=8,
+                 h_nc=64,
+                 in_nc=4,
+                 out_nc=3,
+                 nc=[64,
+                     128,
+                     256,
+                     512],
+                 nb=2,
+                 act_mode='R',
+                 downsample_mode='strideconv',
+                 upsample_mode='convtranspose'):
         super(USRNet, self).__init__()
 
         self.d = DataNet()
-        self.p = ResUNet(in_nc=in_nc, out_nc=out_nc, nc=nc, nb=nb, act_mode=act_mode, downsample_mode=downsample_mode, upsample_mode=upsample_mode)
-        self.h = HyPaNet(in_nc=2, out_nc=n_iter*2, channel=h_nc)
+        self.p = ResUNet(
+            in_nc=in_nc,
+            out_nc=out_nc,
+            nc=nc,
+            nb=nb,
+            act_mode=act_mode,
+            downsample_mode=downsample_mode,
+            upsample_mode=upsample_mode)
+        self.h = HyPaNet(in_nc=2, out_nc=n_iter * 2, channel=h_nc)
         self.n = n_iter
 
     def forward(self, x, k, sf, sigma):
@@ -325,7 +455,7 @@ class USRNet(nn.Module):
 
         # initialization & pre-calculation
         w, h = x.shape[-2:]
-        FB = p2o(k, (w*sf, h*sf))
+        FB = p2o(k, (w * sf, h * sf))
         FBC = cconj(FB, inplace=False)
         F2B = r2c(cabs2(FB))
         STy = upsample(x, sf=sf)
@@ -333,12 +463,15 @@ class USRNet(nn.Module):
         x = nn.functional.interpolate(x, scale_factor=sf, mode='nearest')
 
         # hyper-parameter, alpha & beta
-        ab = self.h(torch.cat((sigma, torch.tensor(sf).type_as(sigma).expand_as(sigma)), dim=1))
+        ab = self.h(
+            torch.cat(
+                (sigma, torch.tensor(sf).type_as(sigma).expand_as(sigma)), dim=1))
 
         # unfolding
         for i in range(self.n):
-            
-            x = self.d(x, FB, FBC, F2B, FBFy, ab[:, i:i+1, ...], sf)
-            x = self.p(torch.cat((x, ab[:, i+self.n:i+self.n+1, ...].repeat(1, 1, x.size(2), x.size(3))), dim=1))
+
+            x = self.d(x, FB, FBC, F2B, FBFy, ab[:, i:i + 1, ...], sf)
+            x = self.p(torch.cat(
+                (x, ab[:, i + self.n:i + self.n + 1, ...].repeat(1, 1, x.size(2), x.size(3))), dim=1))
 
         return x

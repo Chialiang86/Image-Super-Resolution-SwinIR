@@ -51,7 +51,8 @@ class DatasetFFDNet(data.Dataset):
             # ---------------------------------
             rnd_h = random.randint(0, max(0, H - self.patch_size))
             rnd_w = random.randint(0, max(0, W - self.patch_size))
-            patch_H = img_H[rnd_h:rnd_h + self.patch_size, rnd_w:rnd_w + self.patch_size, :]
+            patch_H = img_H[rnd_h:rnd_h + self.patch_size,
+                            rnd_w:rnd_w + self.patch_size, :]
 
             # ---------------------------------
             # augmentation - flip, rotate
@@ -69,7 +70,8 @@ class DatasetFFDNet(data.Dataset):
             # get noise level
             # ---------------------------------
             # noise_level = torch.FloatTensor([np.random.randint(self.sigma_min, self.sigma_max)])/255.0
-            noise_level = torch.FloatTensor([np.random.uniform(self.sigma_min, self.sigma_max)])/255.0
+            noise_level = torch.FloatTensor(
+                [np.random.uniform(self.sigma_min, self.sigma_max)]) / 255.0
 
             # ---------------------------------
             # add noise
@@ -86,18 +88,23 @@ class DatasetFFDNet(data.Dataset):
             img_H = util.uint2single(img_H)
             img_L = np.copy(img_H)
             np.random.seed(seed=0)
-            img_L += np.random.normal(0, self.sigma_test/255.0, img_L.shape)
-            noise_level = torch.FloatTensor([self.sigma_test/255.0])
+            img_L += np.random.normal(0, self.sigma_test / 255.0, img_L.shape)
+            noise_level = torch.FloatTensor([self.sigma_test / 255.0])
 
             # ---------------------------------
             # L/H image pairs
             # ---------------------------------
-            img_H, img_L = util.single2tensor3(img_H), util.single2tensor3(img_L)
+            img_H, img_L = util.single2tensor3(
+                img_H), util.single2tensor3(img_L)
 
         noise_level = noise_level.unsqueeze(1).unsqueeze(1)
 
-
-        return {'L': img_L, 'H': img_H, 'C': noise_level, 'L_path': L_path, 'H_path': H_path}
+        return {
+            'L': img_L,
+            'H': img_H,
+            'C': noise_level,
+            'L_path': L_path,
+            'H_path': H_path}
 
     def __len__(self):
         return len(self.paths_H)

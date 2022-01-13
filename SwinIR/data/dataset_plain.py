@@ -16,7 +16,8 @@ class DatasetPlain(data.Dataset):
 
     def __init__(self, opt):
         super(DatasetPlain, self).__init__()
-        print('Get L/H for image-to-image mapping. Both "paths_L" and "paths_H" are needed.')
+        print(
+            'Get L/H for image-to-image mapping. Both "paths_L" and "paths_H" are needed.')
         self.opt = opt
         self.n_channels = opt['n_channels'] if opt['n_channels'] else 3
         self.patch_size = self.opt['H_size'] if self.opt['H_size'] else 64
@@ -30,7 +31,8 @@ class DatasetPlain(data.Dataset):
         assert self.paths_H, 'Error: H path is empty.'
         assert self.paths_L, 'Error: L path is empty. Plain dataset assumes both L and H are given!'
         if self.paths_L and self.paths_H:
-            assert len(self.paths_L) == len(self.paths_H), 'L/H mismatch - {}, {}.'.format(len(self.paths_L), len(self.paths_H))
+            assert len(self.paths_L) == len(
+                self.paths_H), 'L/H mismatch - {}, {}.'.format(len(self.paths_L), len(self.paths_H))
 
     def __getitem__(self, index):
 
@@ -58,19 +60,24 @@ class DatasetPlain(data.Dataset):
             # --------------------------------
             rnd_h = random.randint(0, max(0, H - self.patch_size))
             rnd_w = random.randint(0, max(0, W - self.patch_size))
-            patch_L = img_L[rnd_h:rnd_h + self.patch_size, rnd_w:rnd_w + self.patch_size, :]
-            patch_H = img_H[rnd_h:rnd_h + self.patch_size, rnd_w:rnd_w + self.patch_size, :]
+            patch_L = img_L[rnd_h:rnd_h + self.patch_size,
+                            rnd_w:rnd_w + self.patch_size, :]
+            patch_H = img_H[rnd_h:rnd_h + self.patch_size,
+                            rnd_w:rnd_w + self.patch_size, :]
 
             # --------------------------------
             # augmentation - flip and/or rotate
             # --------------------------------
             mode = random.randint(0, 7)
-            patch_L, patch_H = util.image_augment(patch_L, mode=mode), util.image_augment(patch_H, mode=mode)
+            patch_L, patch_H = util.image_augment(
+                patch_L, mode=mode), util.image_augment(
+                patch_H, mode=mode)
 
             # --------------------------------
             # HWC to CHW, numpy(uint) to tensor
             # --------------------------------
-            img_L, img_H = util.uint2tensor3(patch_L), util.uint2tensor3(patch_H)
+            img_L, img_H = util.uint2tensor3(
+                patch_L), util.uint2tensor3(patch_H)
 
         else:
 
